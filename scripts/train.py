@@ -37,10 +37,10 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
         self.root = osp.join(rospack.get_path(
             'sound_classification'), train_data)
         if path is not None:
-            #self.base = chainer.datasets.LabeledImageDataset(
-            #    path, osp.join(self.root, 'dataset'))
-            self.base = chainer.datasets.FloatImageDataset(
-                path, osp.join(self.root, "dataset"))
+            self.base = chainer.datasets.LabeledImageDataset(
+               path, osp.join(self.root, 'dataset'))
+            # self.base = chainer.datasets.FloatImageDataset(
+            #     path, osp.join(self.root, "dataset"))
         self.random = random
         # how many classes to be classified
         self.n_class = 0

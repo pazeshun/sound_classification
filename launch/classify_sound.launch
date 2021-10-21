@@ -40,7 +40,8 @@
       gpu: 0
       model_name: lstm
       <!-- target_names: [no_sound, bottle, door, dish, kettle, key, fridge] -->
-      target_names: [no_sound, bottom, middle, high]
+      <!-- target_names: [no_sound, bottom, middle, high] -->
+      target_names: [no_sound, open, close, end]
       train_data: $(arg train_data)
     </rosparam>
   </node>

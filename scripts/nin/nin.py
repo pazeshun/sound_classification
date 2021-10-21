@@ -12,10 +12,11 @@ class NIN(chainer.Chain):
 
     insize = 227
 
-    def __init__(self, n_class=1000):  # 1000 is for ImageNet
+    def __init__(self, n_class=1000, xmeans=False):  # 1000 is for ImageNet
         super(NIN, self).__init__()
         conv_init = I.HeNormal()  # MSRA scaling
         self.n_class = n_class
+        self.xmeans = xmeans
 
         with self.init_scope():
             self.mlpconv1 = L.MLPConvolution2D(
@@ -35,6 +36,10 @@ class NIN(chainer.Chain):
         h = F.reshape(F.average_pooling_2d(h, 6), (len(x), self.n_class))
 
         self.pred = F.softmax(h)
+        #print(self.pred)
+
+        if self.xmeans:
+            return self.pred
 
         if t is None:
             assert not chainer.config.train
