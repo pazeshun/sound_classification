@@ -62,7 +62,7 @@ class PreprocessedDataset(chainer.dataset.DatasetMixin):
     def get_example(self, i):
         image, label = self.base[i]  # (channel ,height, width), rgb
         image = self.process_image(image)
-        print(image.shape)
+        #print(image.shape)
         return image, label
 
     def process_image(self, image):

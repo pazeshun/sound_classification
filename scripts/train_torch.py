@@ -44,7 +44,7 @@ class PreprocessedDataset(torch.utils.data.Dataset):
                 self.target_classes.append(row)
         # Load mean image of dataset
         mean_img_path = osp.join(rospack.get_path('sound_classification'),
-                                 train_data, 'dataset', 'mean_of_dataset.png')
+                                 train_data, 'dataset_torch', 'mean_of_dataset.png')
         # mean = np.array(Image_.open(mean_img_path), np.float32).transpose(
         #     (2, 0, 1))  # (height, width, channel) -> (channel ,height, width), rgb
         #self.mean = mean.astype(chainer.get_dtype())

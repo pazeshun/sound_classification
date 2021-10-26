@@ -20,7 +20,7 @@ ROS package to classify sound stream.
     cd ~/sound_classification_ws/src
     git clone https://github.com/nakaotatsuya/sound_classification.git
     # Note: We should stop using `audio_to_spectrogram` from source after released.
-    git clone https://github.bom/jsk-ros-pkg/jsk_recognition.git 
+    git clone https://github.com/jsk-ros-pkg/jsk_recognition.git 
     rosdep install --from-paths . --ignore-src -y -r
     cd ..
     catkin build sound_classification
@@ -126,7 +126,7 @@ ROS package to classify sound stream.
     - Some data augmentation is executed.
     - `--number 30` means to use maximum 30 images for each class in dataset.
         ```bash
-        $ rosrun sound_classification create_dataset.py --number 30
+        $ rosrun sound_classification create_dataset.py --number 30 -t "train_data" -m "nin"
         ```
 
     1. pytroch datasets
@@ -143,24 +143,34 @@ ROS package to classify sound stream.
 
 1. Train with dataset.
     - Default model is `NIN`.
-    - If you use `vgg16`, pretrained weights of VGG16 is downloaded to `scripts/VGG_ILSVRC_16_layers.npz` at the first time you run this script.
+    
         ```bash
-        $ rosrun sound_classification train.py --epoch 30
+        $ rosrun sound_classification train.py --epoch 30 -t "train_data" -m "nin"
         ```
     - You can also use `LSTM` supported by only Pytorch now. (I have to change the chainer's LSTM)
     ```bash
-    $ rosrun sound_classification train_torch.py --epoch 30
+    $ rosrun sound_classification train_torch.py --epoch 30 -t "train_data" -m "lstm"
     ```
 
 1. Classify sounds.
     - It takes a few seconds for the neural network weights to be loaded.
     - `use_rosbag:=true` and `filename:=PATH_TO_ROSBAG` is available if you classify sound with rosbag.
+
+    - When you used `train.py`, you can try this.
+
         ```bash
         $ roslaunch sound_classification classify_sound.launch
         ```
-    - You can fix class names' color in classification result image by specifying order of class names like below:
+
+    - When you used `train_torch.py`, you can try this.
+       ```bash
+       $ roslaunch sound_classification classify_sound_torch.launch
+       ```
+       
+    - You should fix class names' color in classification result image by specifying order of class names like below:
         ```xml
         <rosparam>
+          model_name: nin
           target_names: [none, other, chip_bag]
         </rosparam>
         ```

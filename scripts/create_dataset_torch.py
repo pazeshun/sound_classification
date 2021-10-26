@@ -75,7 +75,7 @@ def split():
     parser.add_argument('-a', '--augment', default='5', type=int,
                         help='create {augment} images per 1 image')
     parser.add_argument('-m', '--model', type=str,
-                        choices=['nin', 'vgg16', 'lstm'], default='nin',
+                        choices=['lstm'], default='lstm',
                         help='Neural network model to use dataset')
     parser.add_argument('-n', '--number', default='100', type=int,
                         help='maximum number of images per class used to create dataset')
@@ -93,7 +93,8 @@ def split():
     root_dir = osp.expanduser(osp.join(rospack.get_path(
         'sound_classification'), args.train_data))
     origin_dir = osp.join(root_dir, 'original_spectrogram')
-    dataset_dir = osp.join(root_dir, 'dataset')
+    dataset_dir = osp.join(root_dir, 'dataset_torch')
+    dataset_val_dir = osp.join(root_dir, 'dataset_torch_val')
     image_list_train = []
     image_list_test = []
     mean_of_dataset = np.zeros((image_size[0], image_size[1], 3)).astype(np.float32)
@@ -102,6 +103,9 @@ def split():
     if osp.exists(dataset_dir):
         shutil.rmtree(dataset_dir)
     os.mkdir(dataset_dir)
+    if osp.exists(dataset_val_dir):
+        shutil.rmtree(dataset_val_dir)
+    os.mkdir(dataset_val_dir)
     # write how many classes
     classes = sorted(os.listdir(origin_dir))
     with open(osp.join(root_dir, 'n_class.txt'), mode='w') as f:
@@ -130,26 +134,32 @@ def split():
                     _ = osp.splitext(saved_file_name)
                     saved_file_name_augmented = _[0] + '_{0:03d}'.format(j) + _[1]
                     img_aug = Image_.fromarray(seq.augment_image(np.array(img_resize)))
-                    img_aug.save(osp.join(dataset_dir, saved_file_name_augmented))
+                    class_dir = osp.join(dataset_dir, class_name)
+                    if not osp.exists(class_dir):
+                        os.makedirs(class_dir)
+                    img_aug.save(osp.join(class_dir, saved_file_name_augmented))
                     image_list_train.append(saved_file_name_augmented + ' ' + str(class_id) + '\n')
                     print('saved {}'.format(saved_file_name_augmented))
             else:  # save data for test
                 saved_file_name = 'test_' + saved_file_name
-                img_resize.save(osp.join(dataset_dir, saved_file_name))
+                class_val_dir = osp.join(dataset_val_dir, class_name)
+                if not osp.exists(class_val_dir):
+                    os.makedirs(class_val_dir)
+                img_resize.save(osp.join(class_val_dir, saved_file_name))
                 image_list_test.append(saved_file_name + ' ' + str(class_id) + '\n')
                 print('saved {}'.format(saved_file_name))
 
         # create images.txt
         # for train
-        file_path = osp.join(dataset_dir, 'train_images.txt')
-        with open(file_path, mode='w') as f:
-            for line_ in image_list_train:
-                f.write(line_)
-        # for test
-        file_path = osp.join(dataset_dir, 'test_images.txt')
-        with open(file_path, mode='w') as f:
-            for line_ in image_list_test:
-                f.write(line_)
+        # file_path = osp.join(dataset_dir, 'train_images.txt')
+        # with open(file_path, mode='w') as f:
+        #     for line_ in image_list_train:
+        #         f.write(line_)
+        # # for test
+        # file_path = osp.join(dataset_dir, 'test_images.txt')
+        # with open(file_path, mode='w') as f:
+        #     for line_ in image_list_test:
+        #         f.write(line_)
 
     # save mean value of dataset
     file_path = osp.join(dataset_dir, 'mean_of_dataset.png')

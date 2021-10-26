@@ -38,10 +38,11 @@
     <remap from="~input" to="/preprocess_gray_image/output_normalized" />
     <rosparam subst_value="true">
       gpu: 0
-      model_name: lstm
+      model_name: nin
       <!-- target_names: [no_sound, bottle, door, dish, kettle, key, fridge] -->
       <!-- target_names: [no_sound, bottom, middle, high] -->
-      target_names: [no_sound, open, close, end]
+      <!-- target_names: [no_sound, open, close, end] -->
+      target_names: [no_sound, clap]
       train_data: $(arg train_data)
     </rosparam>
   </node>
