@@ -21,6 +21,8 @@ import rospy
 from nin.nin import NIN
 from lstm.lstm import LSTM_torch
 
+import shutil
+
 matplotlib.use("Agg")
 
 class PreprocessedDataset(torch.utils.data.Dataset):
@@ -79,6 +81,9 @@ def load_model(model_name, n_class):
     model = archs[model_name](n_class=n_class)
     return model
 
+def save_ckp(state, best_model_path):
+    torch.save(state, best_model_path)
+        
 def main():
     rospack = rospkg.RosPack()
 
@@ -139,6 +144,7 @@ def main():
 
     out = osp.join(rospack.get_path("sound_classification"),
                    args.train_data, "result_torch", args.model)
+    best_model_path = osp.join(out, "best_model.pt")
     if not osp.exists(out):
         makedirs(out)
 
@@ -148,41 +154,77 @@ def main():
     #print(labels)
 
     num_epochs = 30
+    test_loss_min = 10
     for epoch in range(num_epochs):
         print("-----")
 
-        for phase in ["train", "test"]:
-            if phase == "train":
-                model.train()
-            else:
-                model.eval()
+        train_loss = 0.0
+        test_loss = 0.0
 
-            epoch_loss = 0.0
-            epoch_corrects = 0
+        train_corrects  = 0.0
+        test_corrects = 0.0
+        
+        ##train phase
+        model.train()
+        for inputs, labels in dataloader_dict["train"]:
+            inputs = inputs.to(device)
+            labels = labels.type(torch.LongTensor)
+            
+            optimizer.zero_grad()
 
-            for inputs, labels in dataloader_dict[phase]:
-                optimizer.zero_grad()
-                inputs = inputs.to(device)
-                labels = labels.type(torch.LongTensor)
-                with torch.set_grad_enabled(phase == "train"):
-                    outputs = model(inputs)
-                    outputs = outputs.to("cpu")
-                    #calculate loss
-                    loss = criterion(outputs, labels)
-                    #predict labels
-                    _, preds = torch.max(outputs, 1)
+            with torch.set_grad_enabled(True):
+                outputs = model(inputs)
+                outputs = outputs.to("cpu")
+                #calculate loss
+                loss = criterion(outputs, labels)
+                #predict labels
+                _, preds = torch.max(outputs, 1)
 
-                    if phase == "train":
-                        loss.backward()
-                        optimizer.step()
-                    epoch_loss += loss.item() * inputs.size(0)
-                    epoch_corrects += torch.sum(preds == labels.data)
+                loss.backward()
+                optimizer.step()
+                train_loss += loss.item() * inputs.size(0)
+                train_corrects += torch.sum(preds == labels.data)
 
-            #loss and accuracy for each epoch
-            epoch_loss = epoch_loss / len(dataloader_dict[phase].dataset)
-            epoch_acc = epoch_corrects.double() / len(dataloader_dict[phase].dataset)
+        #loss and accuracy for each epoch
+        train_loss = train_loss / len(dataloader_dict["train"].dataset)
+        train_acc = train_corrects.double() / len(dataloader_dict["train"].dataset)
 
-            print("{} Loss: {:.4f} Acc: {:.4f}".format(phase, epoch_loss, epoch_acc))
+        print("train Loss: {:.4f} Acc: {:.4f}".format(train_loss, train_acc))
+
+        ###test phase
+        model.eval()
+        for inputs, labels in dataloader_dict["test"]:
+            inputs = inputs.to(device)
+            labels = labels.type(torch.LongTensor)
+            
+            optimizer.zero_grad()
+
+            outputs = model(inputs)
+            outputs = outputs.to("cpu")
+            #calculate loss
+            loss = criterion(outputs, labels)
+            #predict labels
+            _, preds = torch.max(outputs, 1)
+
+            test_loss += loss.item() * inputs.size(0)
+            test_corrects += torch.sum(preds == labels.data)
+
+        #loss and accuracy for each epoch
+        test_loss = test_loss / len(dataloader_dict["test"].dataset)
+        test_acc = test_corrects.double() / len(dataloader_dict["test"].dataset)
+
+        print("test Loss: {:.4f} Acc: {:.4f}".format(test_loss, test_acc))
+
+        checkpoint = {
+            "epoch": epoch+1,
+            "valid_loss_min": test_loss,
+            "state_dict": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+        }
+        
+        if test_loss <= test_loss_min:
+            save_ckp(checkpoint, best_model_path)
+            test_loss_min = test_loss
 
 if __name__ == "__main__":
     main()

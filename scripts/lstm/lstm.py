@@ -107,4 +107,6 @@ class LSTM_torch(nn.Module):
         output, (h_n, c_n) = self.simple_rnn(x, (self.hidden, self.cell)) # RNN input - (seq, batch, feature)
         x = h_n[-1,:,:]
         x = self.fc(x)
+
+        #self.pred = F.softmax(x)
         return x
