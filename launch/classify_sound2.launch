@@ -5,7 +5,7 @@
 
   <arg name="use_rosbag" default="false" />
   <arg name="filename" default="/" />
-  <arg name="use_microphone" default="true" />
+  <arg name="use_microphone" default="false" />
 
   <arg name="high_cut_freq" default="6000" />
   <arg name="low_cut_freq" default="1" />

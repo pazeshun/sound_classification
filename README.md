@@ -121,14 +121,20 @@ ROS package to classify sound stream.
             save_when_sound:=true target_class:=TARGET_CLASS threshold:=0.5 save_data_rate:=5 
             ```
 
-1. Create dateaset for chainer from saved spectrograms.
+1. Create dateaset for chainer (or pytorch) from saved spectrograms.
+    1. chainer datasets
     - Some data augmentation is executed.
     - `--number 30` means to use maximum 30 images for each class in dataset.
         ```bash
         $ rosrun sound_classification create_dataset.py --number 30
         ```
 
-6. Visualize dataset.
+    1. pytroch datasets
+        ```bash
+        $ rosrun sound_classification create_dataset_torch.py --number 30
+        ```
+
+1. Visualize dataset. (You can skip this part.)
     - You can use `train` arg for train dataset (augmented dataset), `test` arg for test dataset.
     - The spectrograms in the dataset are visualized in random order.
         ```bash
@@ -141,7 +147,7 @@ ROS package to classify sound stream.
         ```bash
         $ rosrun sound_classification train.py --epoch 30
         ```
-    - You can also use `LSTM` by using Pytorch.
+    - You can also use `LSTM` supported by only Pytorch now. (I have to change the chainer's LSTM)
     ```bash
     $ rosrun sound_classification train_torch.py --epoch 30
     ```
