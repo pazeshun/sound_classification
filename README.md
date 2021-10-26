@@ -11,7 +11,7 @@ ROS package to classify sound stream.
 ## Setup
 
 1. [Install ROS](http://wiki.ros.org/ROS/Installation). Available OS:
-     - Ubuntu 16.04 (?)
+     - Ubuntu 16.04
      - Ubuntu 18.04
 
 1. Create workspace
@@ -20,7 +20,7 @@ ROS package to classify sound stream.
     cd ~/sound_classification_ws/src
     git clone https://github.com/nakaotatsuya/sound_classification.git
     # Note: We should stop using `audio_to_spectrogram` from source after released.
-    git clone https://github.com/nakaotatsuya/jsk_recognition.git -b multi-channel
+    git clone https://github.bom/jsk-ros-pkg/jsk_recognition.git 
     rosdep install --from-paths . --ignore-src -y -r
     cd ..
     catkin build sound_classification
@@ -37,8 +37,9 @@ ROS package to classify sound stream.
     - Using GPU is highly recommended.
     - If you want to use Pytorch, you should also install this.
       ```bash
-      pip install torch>=1.4.0
+      pip install torch==1.4.0 
       ```
+      I think 1.4.0 or newer versions are OK.
 
 ## Usage
 
