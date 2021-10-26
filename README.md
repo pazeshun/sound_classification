@@ -18,9 +18,9 @@ ROS package to classify sound stream.
     ```bash
     mkdir ~/sound_classification_ws/src -p
     cd ~/sound_classification_ws/src
-    git clone https://github.com/708yamaguchi/sound_classification.git
+    git clone https://github.com/nakaotatsuya/sound_classification.git
     # Note: We should stop using `audio_to_spectrogram` from source after released.
-    git clone https://github.com/708yamaguchi/jsk_recognition.git -b multi-channel
+    git clone https://github.com/nakaotatsuya/jsk_recognition.git -b multi-channel
     rosdep install --from-paths . --ignore-src -y -r
     cd ..
     catkin build sound_classification
@@ -35,14 +35,18 @@ ROS package to classify sound stream.
         ```
     - cuda and cupy are needed for chainer. See https://docs-cupy.chainer.org/en/stable/compatibility.html
     - Using GPU is highly recommended.
+    - If you want to use Pytorch, you should also install this.
+      ```bash
+      pip install torch>=1.4.0
+      ```
 
 ## Usage
 
 1. Write your microphone parameters to `audio_to_spectrogram.launch`'s arg tags.
-    - In particular, `device`, `n_channel`, `bitdepth` and `sample_rate` need to be specified.
+    - In particular, `audio_topic`, `n_channel`, `bitdepth` ,`mic_sampling_rate`, `train_data` need to be specified.
     - The example bash commands to get these params are below:
         ```bash
-        # For device. In this example, card 0 and device 0, so device:="hw:0,0"
+        # For device. In this example, card 0 and device 0, so device:="hw:0,0". If you fail, you can try device:="plughw:0,0" .
         $ arecord -l
         \**** List of CAPTURE Hardware Devices ****
         card 0: PCH [HDA Intel PCH], device 0: ALC293 Analog [ALC293 Analog]
@@ -50,17 +54,19 @@ ROS package to classify sound stream.
         Subdevice #0: subdevice #0
         ```
         ```bash
-        # For n_channel, bitdepth and sample_rate,
+        # For n_channel, bitdepth and mic_sampling_rate,
         $ pactl list short sinks
         0       alsa_output.pci-0000_00_1f.3.analog-stereo      module-alsa-card.c      s16le 2ch 44100Hz   SUSPENDED
         ```
     - If you use `/audio` topic from other computer and do not want to publish `/audio`, set `use_microphone:=false` at each launch flie.
+    - `train_data` indicates the datasets folder where you want to save. Default is set as `train_data`.
 
 1. Save environmental noise to `train_data/noise.npy`.
     - By subtracting noise, spectrograms become clear.
     - During this script, you must not give any sound to the sensor.
     - You should update noise data everytime before sound recognition, because environmental sound differs everytime.
     - 30 noise samples are enough.
+    - You shouldn't forget to set ros-args.
         ```bash
         $ roslaunch sound_classification save_noise.launch
         ```
@@ -81,7 +87,7 @@ ROS package to classify sound stream.
 
 1. Collect spectrogram you would like to classify at `train_data/original_spectrogram/TARGET_CLASS`.
 
-    1. Rosbag version (Recommended)
+    1. Rosbag version
         - I recommend to use rosbag to collect spectrograms. The rosbag makes it easy to use `save_sound.launch` with several parameters.
         - In `target_class:=TARGET_CLASS`, you can set the class name of your target sound.
         - By using `use_rosbag:=true` and `filename:=PATH_TO_ROSBAG`, you can save spectrograms from rosbag.
@@ -106,12 +112,12 @@ ROS package to classify sound stream.
               filename:=PATH_TO_ROSBAG target_class:=no_sound threshold:=0 save_when_sound:=false
             ```
 
-    1. Stream version (Not Recommended)
+    1. Stream version
         - You can collect spectrogram directly from audio topic stream.
         - Do not use `use_rosbag:=true`. The other args are the same as the rosbag version. Please see above.
             ```bash
             $ roslaunch sound_classification save_sound.launch \
-            save_when_sound:=true target_class:=TARGET_CLASS threshold:=0.5 save_data_rate:=5
+            save_when_sound:=true target_class:=TARGET_CLASS threshold:=0.5 save_data_rate:=5 
             ```
 
 1. Create dateaset for chainer from saved spectrograms.
@@ -129,11 +135,15 @@ ROS package to classify sound stream.
         ```
 
 1. Train with dataset.
-    - Default model is `NIN` (Recommended).
+    - Default model is `NIN`.
     - If you use `vgg16`, pretrained weights of VGG16 is downloaded to `scripts/VGG_ILSVRC_16_layers.npz` at the first time you run this script.
         ```bash
         $ rosrun sound_classification train.py --epoch 30
         ```
+    - You can also use `LSTM` by using Pytorch.
+    ```bash
+    $ rosrun sound_classification train_torch.py --epoch 30
+    ```
 
 1. Classify sounds.
     - It takes a few seconds for the neural network weights to be loaded.

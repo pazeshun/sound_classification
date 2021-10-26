@@ -70,18 +70,20 @@ def split():
     parser.add_argument('-r', '--rate', default='0.8', type=float,
                         help='train:test dataset rate (default 0.8:0.2)')
     parser.add_argument("-t", "--train_data", default="train_data", type=str)
-    parser.add_argument('-p', '--path', default=osp.join(rospack.get_path(
-        'sound_classification'), 'train_data'), help='path to train data')
+    # parser.add_argument('-p', '--path', default=osp.join(rospack.get_path(
+    #     'sound_classification'), 'train_data'), help='path to train data')
     parser.add_argument('-a', '--augment', default='5', type=int,
                         help='create {augment} images per 1 image')
     parser.add_argument('-m', '--model', type=str,
-                        choices=['nin', 'vgg16'], default='nin',
+                        choices=['nin', 'vgg16', 'lstm'], default='nin',
                         help='Neural network model to use dataset')
     parser.add_argument('-n', '--number', default='100', type=int,
                         help='maximum number of images per class used to create dataset')
     args = parser.parse_args()
     rate = args.rate
     if args.model == 'nin':
+        image_size = (227, 227)
+    if args.model == 'lstm':
         image_size = (227, 227)
     elif args.model == 'vgg16':
         image_size = (224, 224)
