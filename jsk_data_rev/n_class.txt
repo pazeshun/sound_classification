@@ -1,0 +1,3 @@
+no_sound
+strong
+weak

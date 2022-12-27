@@ -1,0 +1,5 @@
+test_weak_weak_00008.png 0
+test_weak_weak_00014.png 0
+test_weak_weak_00053.png 0
+test_weak_weak_00028.png 0
+test_weak_weak_00037.png 0
